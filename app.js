@@ -5,11 +5,17 @@ const dotenv = require('dotenv');
 
 const productRoute = require('./Routes/ProductRoute');
 
+const userRoute = require('./Routes/userRoutes');
+
 dotenv.config(); // Load environment variables from .env file
 
 app.use(express.json()); // middleware to parse JSON request bodies
 
+
 app.use('/products', productRoute);
+app.use('/users', userRoute);
+
+
 
 const connectDB = require('./Config/databaseConfig');
 connectDB(); // Connect to MongoDB
