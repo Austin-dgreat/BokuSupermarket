@@ -60,22 +60,22 @@ exports.loginUser = async (req, res) => {
     // check if user exists
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'User not found' });
     }
 
     // check if password is correct
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      return res.status(400).json({ message: 'Invalid password' });
+      return res.status(401).json({ message: 'Invalid password' });
     }
 
     // generate a token (you can use JWT or any other method)
     // const token = generateToken(user);
 
     const jwt = require('jsonwebtoken');
-    const token = jwt.sign({ id: user._id, email: user.email, name: user.name }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ id: user._id, email: user.email, name: user.name, role: user.role, hasAdminAccess: user.hasAdminAccess }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-    res.status(200).json({ message: 'Login successful', token}); 
+    res.status(200).json({ message: 'Login successful', token, role: user.role, hasAdminAccess: user.hasAdminAccess }); 
   } catch (error) {
     res.status(500).json({ message: 'Error logging in', error: error.message });
   }

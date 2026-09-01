@@ -1,9 +1,17 @@
-const product = require('../Models/products'); 
+const Product = require('../Models/products'); 
+const upload = require('../middleware/upload'); 
 
 // creat a product
 exports.createProduct = async (req, res) => {
   try {
+
+    // check if all required fields are provided
+     if (!req.body.name || !req.body.size || !req.body.description || !req.body.price || !req.body.quantity || !req.body.color) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
     const { name, size, description, price, quantity, color } = req.body;
+   
 
     const product = new Product({ name, size, description, price, quantity, color });
 
@@ -12,6 +20,45 @@ exports.createProduct = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'error creating product', error: error.message });
   }
+};
+
+// create a product with image upload
+exports.createProductWithImage = async (req, res) => {
+  try {
+    // check if all required fields are provided
+    if (!req.body.name || !req.body.size || !req.body.description || !req.body.price || !req.body.quantity || !req.body.color) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    upload.single('image')(req, res, async (err) => {
+      if (err) {
+        return res.status(400).json({ message: 'Error uploading image', error: err.message });
+      }
+    });
+
+    const { name, size, image, description, price, quantity, color } = req.body;
+
+    // check if file is uploaded
+    if (!req.file) {
+      return res.status(400).json({ message: 'please upload an image' });
+    }
+
+    const product = new Product({
+      name,
+      size,
+      description,
+      price,
+      quantity,
+      color,
+      image: req.file.path // save the image path to the database
+    });
+
+    await product.save();
+    res.status(201).json({ message: 'Product created successfully', product });
+  } catch (error) {
+    res.status(500).json({ message: 'Error creating product', error: error.message });
+  }
+
 };
 
 // update a product
